@@ -9,7 +9,7 @@ import mechanize
 import re
 import pathlib
 import sys
-from bs4 import BeautifulSoup
+from results.bs4requ import BeautifulSoup
 
 # Dictionaries to map arguments to values
 schlagwortOptionen = {
@@ -96,24 +96,30 @@ class HandelsRegister:
 
 
 def parse_result(result):
+    """
+    Parse the result row and extract relevant information.
+    """
     cells = []
-    for cellnum, cell in enumerate(result.find_all('td')):
-        #print('[%d]: %s [%s]' % (cellnum, cell.text, cell))
+    for cell in result.find_all('td'):
         cells.append(cell.text.strip())
-    #assert cells[7] == 'History'
+    # assert cells[7] == 'History'
     d = {}
     d['court'] = cells[1]
     d['name'] = cells[2]
     d['state'] = cells[3]
     d['status'] = cells[4]
-    d['documents'] = cells[5] # todo: get the document links
+    d['documents'] = cells[5]  # todo: get the document links
     d['history'] = []
     hist_start = 8
-    hist_cnt = (len(cells)-hist_start)/3
-    for i in range(hist_start, len(cells), 3):
-        d['history'].append((cells[i], cells[i+1])) # (name, location)
-    #print('d:',d)
+    for i in range(hist_start, len(cells), 2):
+        if i+1 < len(cells):
+            name = cells[i]
+            loc = cells[i + 1]
+            d['history'].append((name, loc))
+        else:
+            print(f"Index {i+1} is out of range for the list cells")
     return d
+
 
 def pr_company_info(c):
     for tag in ('name', 'court', 'state', 'status'):
